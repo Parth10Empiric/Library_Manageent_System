@@ -135,6 +135,41 @@ document.addEventListener('keyup', function(e) {
   }
 });
 
+  function deleteBook(bookId){
+    fetch(`/admindash/manage/books/delete/${bookId}/`,{
+      method: 'POST',
+      headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      "X-CSRFToken": getCSRFToken()
+    }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if(data.status === "success"){
+        document.getElementById(`book-row-${bookId}`).remove();
+      }
+    })
+    .catch(err => console.log(err))
+  }
+
+  function getCSRFToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+  }
+
+  function loadBooks(page=1){
+    fetch(`/admindash/manage/books/?page=${page}`,{
+      headers:{
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById("book-table-body").innerHTML = data.rows;
+      document.getElementById("book-pagination").innerHTML = data.pagination;
+    })
+    .catch(err => console.error(err));
+  }
+
 </script>
 
 <style>

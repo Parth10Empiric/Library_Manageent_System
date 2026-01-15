@@ -12,27 +12,27 @@
         <!-- 1. Account Section -->
         <div class="p-6 border-b">
           {% if user.is_authenticated %}
-          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-6">Account</h3>
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-6">Account</h3>
           {% else %}
-          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Account</h3>
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Account</h3>
           {% endif %}
-          
+
           <div class="flex items-center gap-3 mb-4">
             {% if user.is_authenticated %}
-            <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">{{ user.username.0 }}</div>
-            <div>
-              <p class="text-sm font-bold text-gray-800">{{ user.username }}</p>
-              <p class="text-xs text-green-600 font-medium">Logged In</p>
-            </div>
+              <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">{{ user.username.0 }}</div>
+              <div>
+                <p class="text-sm font-bold text-gray-800">{{ user.username }}</p>
+                <p class="text-xs text-green-600 font-medium">Logged In</p>
+              </div>
             {% endif %}
           </div>
           {% if user.is_authenticated %}
-          {% if user.is_staff %}
-            <a href="{% url 'admindash' %}" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2.5 rounded-lg transition-all shadow-sm">Go to Dashboard</a><br />
-          {% else %}
-            <a href="{% url 'stddash' %}" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2.5 rounded-lg transition-all shadow-sm">Go to Dashboard</a><br />
-          {% endif %}
+            {% if user.is_staff %}
+              <a href="{% url 'admindash' %}" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2.5 rounded-lg transition-all shadow-sm">Go to Dashboard</a><br />
             {% else %}
+              <a href="{% url 'stddash' %}" class="block w-full text-center bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2.5 rounded-lg transition-all shadow-sm">Go to Dashboard</a><br />
+            {% endif %}
+          {% else %}
             <a href="{% url 'login' %}" class="block w-full text-center border border-indigo-600 text-indigo-600 hover:bg-indigo-50 text-sm font-medium py-2.5 rounded-lg transition-all">Sign In</a>
           {% endif %}
         </div>
@@ -42,10 +42,10 @@
           <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Search & Sort</h3>
 
           <!-- Search by Title -->
-          <div>
+          <div class="relative">
             <label class="block text-sm font-medium text-gray-700 mb-1">Book Title</label>
-            <input type="text" name="s_title" placeholder="e.g. Gilead" class="search_book w-full border-gray-200 border p-2.5 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
-            <ul class="search-result"></ul>
+            <input type="text" autocomplete="off" name="s_title" placeholder="e.g. Gilead" id="book-search" class="search_book w-full border-gray-200 border p-2.5 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            <div id="suggestion-box" class="absolute left-0 right-0 bg-white border border-gray-200 hidden z-50 shadow-lg"></div>
           </div>
 
           <!-- Search by Author -->
@@ -87,6 +87,7 @@
     </footer>
 
     <script>
+
       function ajexHandel(event, pageNumber = null) {
         if (event) event.preventDefault()
         let url = new URL(window.location.href)
@@ -118,27 +119,46 @@
             console.error('There was a problem with the fetch operation:', error)
           })
       }
-      function sendRequest(event, bookId) {
-        if (event) event.preventDefault()
-        let url = `/book_req/${bookId}/`
+
+      const searchInput = document.getElementById('book-search')
+      const suggestionBox = document.getElementById('suggestion-box')
       
-        fetch(url, {
-          method: 'GET',
-          headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-          }
-        })
-          .then((response) => {
-            if (!response.ok) throw new Error('Network response was not ok')
-            return response.json()
-          })
+      searchInput.addEventListener('keyup', function () {
+        const query = this.value
+      
+        if (query.length < 0) {
+          suggestionBox.classList.add('hidden')
+          return
+        }
+      
+        fetch(`/home/searchbook/?term=${encodeURIComponent(query)}`)
+          .then((response) => response.json())
           .then((data) => {
-            document.getElementById(`status-container-${bookId}`).innerHTML = `<button disabled class="w-full text-sm px-3 py-2 bg-orange-100 text-orange-700 rounded-lg">Issue Requested</button>`
+            if (data.length > 0) {
+              suggestionBox.innerHTML = ''
+              suggestionBox.classList.remove('hidden')
+      
+              data.forEach((title) => {
+                const item = document.createElement('div')
+                item.className = 'px-4 py-2 hover:bg-indigo-50 cursor-pointer text-sm'
+                item.textContent = title
+      
+                item.addEventListener('click', () => {
+                  searchInput.value = title
+                  suggestionBox.classList.add('hidden')
+                })
+      
+                suggestionBox.appendChild(item)
+              })
+            } else {
+              suggestionBox.innerHTML = 'Not Found'
+            }
           })
-          .catch((error) => {
-            console.error('There was a problem with the fetch operation:', error)
-          })
-      }
+      })
+      
+      document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target)) suggestionBox.classList.add('hidden')
+      })
     </script>
   </body>
 </html>

@@ -1,47 +1,62 @@
 {% for issue in issues %}
-  <tr class="border-t hover:bg-gray-50 transition" id="issue-row-{{ issue.id }}">
-
-    <td class="px-4 py-3 font-medium">
-      {{ issue.student.name }}
-      <div class="text-xs text-gray-500">{{ issue.student.student_id }}</div>
-    </td>
-
-    <td class="px-4 py-3">{{ issue.book.title }}</td>
-
-    <td class="status-cell px-4 py-3 text-center">
-      {% if issue.status == 'requested' %}
-        <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">Requested</span>
-      {% elif issue.status == 'issued' %}
+  {% if issue.status == 'issued' %}
+    <tr class="border-b">
+      <td class="px-4 py-3 font-medium">{{ issue.book.title }}</td>
+      <td class="px-4 py-3">
         <span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Issued</span>
-      {% else %}
-        <span class="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs">Returned</span>
-      {% endif %}
-    </td>
-
-    <td class="issue-date-cell px-4 py-3 text-center">{{ issue.issue_date|default:'-' }}</td>
-
-    <td class="return-date-cell px-4 py-3 text-center">{{ issue.return_date|default:'-' }}</td>
-
-    <td class="px-4 py-3 text-center">
+      </td>
+      <td class="px-4 py-3">{{ issue.issue_date }}</td>
+      <td class="px-4 py-3">{{ issue.return_date }}</td>
       {% if issue.fine %}
-        ₹{{ issue.fine.amount }}
+        <td class="px-4 py-3 text-red-600">₹{{ issue.fine.ammount }}</td>
       {% else %}
-        ₹0
+        <td class="px-4 py-3 text-green-600">₹0</td>
       {% endif %}
-    </td>
 
-    <td class="action-cell px-4 py-3 text-center">
-      {% if issue.status == 'requested' %}
-        <button onclick="handleIssue('{{ issue.id }}','issue')" class="bg-green-600 text-white px-3 py-1 rounded text-xs">Accept Issue</button>
-      {% elif issue.status == 'issued' %}
-        <button onclick="handleIssue('{{ issue.id }}','return')" class="bg-red-600 text-white px-3 py-1 rounded text-xs">Mark Returned</button>
+      <td class="px-4 py-3">
+        {% if issue.fine and not issue.fine.is_paid %}
+          <button onclick="openPayModal()" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs">Pay Fine</button>
+        {% else %}
+          -
+        {% endif %}
+      </td>
+    </tr>
+
+    <!-- Requested Book -->
+  {% elif issue.status == 'requested' %}
+    <tr class="border-b">
+      <td class="px-4 py-3 font-medium">{{ issue.book.title }}</td>
+      <td class="px-4 py-3">
+        <span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">Requested</span>
+      </td>
+      <td class="px-4 py-3">-</td>
+      <td class="px-4 py-3">-</td>
+      <td class="px-4 py-3">₹0</td>
+      <td class="px-4 py-3 text-gray-400 text-xs">Waiting Approval</td>
+    </tr>
+  {% else %}
+    <tr class="border-b">
+      <td class="px-4 py-3 font-medium">{{ issue.book.title }}</td>
+      <td class="px-4 py-3">
+        <span class="bg-blue-100 text-white-700 px-2 py-1 rounded text-xs">Returned</span>
+      </td>
+      <td class="px-4 py-3">{{ issue.issue_date }}</td>
+      <td class="px-4 py-3">{{ issue.return_date }}</td>
+      {% if issue.fine %}
+        <td class="px-4 py-3 text-red-600">₹{{ issue.fine.ammount }}</td>
       {% else %}
-        <span class="text-gray-400 text-xs">Completed</span>
+        <td class="px-4 py-3 text-green-600">₹0</td>
       {% endif %}
-    </td>
-  </tr>
-{% empty %}
-  <tr>
-    <td colspan="7" class="px-4 py-6 text-center text-gray-500">No records found</td>
-  </tr>
+
+      <td class="px-4 py-3">
+        {% if issue.fine and not issue.fine.is_paid %}
+          <button onclick="openPayModal()" class="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 text-xs">Pay Fine</button>
+        {% elif issue.fine and issue.fine.is_paid %}
+          <button onclick="openPayModal()" class="bg-green-600 text-white px-3 py-1 rounded hover:text-xs">Paided</button>
+        {% else %}
+          -
+        {% endif %}
+      </td>
+    </tr>
+  {% endif %}
 {% endfor %}

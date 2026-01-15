@@ -6,7 +6,9 @@ from django.utils.timezone import now
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.db.models import Q
-
+from book.models import Book
+from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator
 
 # Create your views here.
 
@@ -55,7 +57,7 @@ def issue_management_view(request):
     
     elif request.headers.get('x-requested-with') == 'XMLHttpRequest':
         html = render_to_string(
-            "dashbord/partials/issue_rows.html",
+            "admin/partials/admin_issue_rows.html",
             {"issues": issues},
             request=request
         )
@@ -65,7 +67,38 @@ def issue_management_view(request):
 
 @staff_member_required
 def book_management_view(request):
-    return render(request, "admin/book_management.html")
+    books_qs = Book.objects.all()
+
+    paginator = Paginator(books_qs, 10) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        rows_html = render_to_string(
+            "admin/partials/admin_book_rows.html",
+            {"books":page_obj},
+            request=request
+        )
+
+        pagination_html = render_to_string(
+            "admin/partials/admin_book_pagination.html",
+            {"books":page_obj},
+            request=request
+        )
+
+        return JsonResponse({
+            "rows":rows_html,
+            "pagination":pagination_html,   
+        })
+    return render(request, "admin/book_management.html", {"books":page_obj})
+
+@staff_member_required
+@require_POST
+def delete_book_view(request, book_id):
+    book = get_object_or_404(Book, id=book_id)
+    book.delete()
+    return JsonResponse({"status":"success"})
+
 
 @staff_member_required
 def author_management_view(request):

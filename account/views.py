@@ -92,6 +92,14 @@ def home_view(request):
     return render(request, "home.html", context)
 
 
+def suggest_book(request):
+    query = request.GET.get('term', '')
+    if query:
+        books = Book.objects.filter(title__icontains=query).values_list('title',flat=True)
+        return JsonResponse(list(books), safe=False)
+    return JsonResponse([], safe=False)
+
+
 # add student
 @staff_member_required
 def add_student_view(request):
