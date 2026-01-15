@@ -26,5 +26,6 @@ urlpatterns = [
     path('admindash/', views.admin_dashbord_view, name="admindash" ),
     path('book_req/<int:book_id>/', views.request_issue, name='request_issue'), 
     path('admindash/manage/', include("issue.urls")),
-
+    path('logout/', views.logout_view, name="logout"),
+    
 ]

@@ -8,27 +8,35 @@ from django.http import JsonResponse
 from django.contrib.auth.models import User
 from .models import Student
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 
 # Create your views here.
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('home')
+        if user.is_staff:
+            return redirect('admindash')
+        else:
+            return redirect('home')
 
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
 
-        user = authenticate(request,    username= username, password = password)
+        user = authenticate(request, username= username, password = password)
 
         if user is not None:
             login(request, user)
             messages.success(request, "login successfully")
 
-            return redirect('home')
+            if user.is_staff:
+                return redirect('admindash')
+            else:
+                return redirect('home')
+            
         else:
             messages.error(request, "Invalid Username & Password")
             return render(request,"auth/login.html")
@@ -85,6 +93,7 @@ def home_view(request):
 
 
 # add student
+@staff_member_required
 def add_student_view(request):
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -142,6 +151,7 @@ def std_dashbord_view(request):
         return render(request, 'dashbord/partials/issue_rows.html', contex)
     return render(request, "dashbord/student_dashbord.html", contex)
 
+@staff_member_required
 def admin_dashbord_view(request):
     return render(request, "dashbord/admin_dashbord.html")
 
@@ -172,3 +182,8 @@ def request_issue(request, book_id):
         'message': 'Request sent'
     })
 
+@login_required
+def logout_view(request):
+    logout(request)
+    request.session.flush()
+    return redirect('home')

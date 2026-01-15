@@ -11,13 +11,20 @@
       <aside class="w-72 bg-white border-r shadow-sm flex flex-col shrink-0 overflow-y-auto">
         <!-- 1. Account Section -->
         <div class="p-6 border-b">
-          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-4">Account</h3>
+          {% if user.is_authenticated %}
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-6">Account</h3>
+          {% else %}
+          <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Account</h3>
+          {% endif %}
+          
           <div class="flex items-center gap-3 mb-4">
+            {% if user.is_authenticated %}
             <div class="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold">{{ user.username.0 }}</div>
             <div>
               <p class="text-sm font-bold text-gray-800">{{ user.username }}</p>
               <p class="text-xs text-green-600 font-medium">Logged In</p>
             </div>
+            {% endif %}
           </div>
           {% if user.is_authenticated %}
           {% if user.is_staff %}
@@ -37,7 +44,8 @@
           <!-- Search by Title -->
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Book Title</label>
-            <input type="text" name="s_title" placeholder="e.g. Gilead" class="w-full border-gray-200 border p-2.5 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            <input type="text" name="s_title" placeholder="e.g. Gilead" class="search_book w-full border-gray-200 border p-2.5 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            <ul class="search-result"></ul>
           </div>
 
           <!-- Search by Author -->

@@ -1,7 +1,13 @@
 <nav class="bg-indigo-600 text-white px-6 py-4 flex justify-between items-center">
     <h1 class="text-xl font-bold">🎓 Library Managment System</h1>
     <div class="space-x-4">
+        {% if user.is_staff %}
+        <a href="{% url 'admindash' %}" class="hover:underline">Dashbord</a>
+        {% elif user.is_authenticated %}
         <a href="{% url 'home' %}" class="hover:underline">Home</a>
-        <a href="#" class="hover:underline">Logout</a>
+        {% endif %}
+        {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="hover:underline">Logout</a>
+        {% endif %}
     </div>
 </nav>
