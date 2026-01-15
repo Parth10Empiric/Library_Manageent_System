@@ -1,0 +1,174 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from book.models import Book
+from issue.models import Issue
+from fines.models import Fine
+from django.core.paginator import Paginator
+from django.template.loader import render_to_string
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+from .models import Student
+from django.contrib import messages
+from django.contrib.auth import authenticate, login
+from django.db.models import Sum
+from django.contrib.auth.decorators import login_required
+
+# Create your views here.
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request,    username= username, password = password)
+
+        if user is not None:
+            login(request, user)
+            messages.success(request, "login successfully")
+
+            return redirect('home')
+        else:
+            messages.error(request, "Invalid Username & Password")
+            return render(request,"auth/login.html")
+
+    return render(request,"auth/login.html")
+
+def home_view(request):
+    books = Book.objects.all()
+
+    title = request.GET.get('s_title')
+    author = request.GET.get('s_author')
+    category = request.GET.get('s_category')
+    sort = request.GET.get('sort')
+
+    if title:
+        books = books.filter(title__icontains=title)
+    if author:
+        books = books.filter(author__name__icontains = author)
+    if category:
+        books = books.filter(category__name__icontains = category)
+
+    if sort == 'name_asc':
+        books = books.order_by('title')
+    elif sort == 'author_asc':
+        books = books.order_by('author')
+    else:
+        books = books.order_by('-id')
+
+    paginator = Paginator(books, 9) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    if request.user.is_authenticated and not request.user.is_staff:
+        student = Student.objects.get(user=request.user)
+        issues = Issue.objects.filter(student=student)
+
+        issue_dict = {issue.book_id: issue.status for issue in issues}
+
+        for book in page_obj:
+            book.student_issue_status = issue_dict.get(book.id)
+    else:
+        for book in page_obj:
+            book.student_issue_status = None
+
+    context = {
+        "books": page_obj,
+    }
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        html = render_to_string("book_list.html", context, request=request)
+        return JsonResponse({"html":html})
+    
+    return render(request, "home.html", context)
+
+
+# add student
+def add_student_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        name = request.POST.get('name')
+        studentId = request.POST.get('student_id')
+        department = request.POST.get('department')
+        phone = request.POST.get('phone')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "user alredy available")
+        elif Student.objects.filter(sudent_id= studentId).exists():
+            messages.error(request, "UserId available")
+        else:
+            new_user = User.objects.create_user(username=username, password=password)
+
+            Student.objects.create(
+                user = new_user,
+                sudent_id = studentId,
+                department = department,
+                name = name,
+                phone = phone,
+            )
+            messages.success(request, "Add Student successfully")
+            return redirect('admindash')
+        
+    return render(request, "auth/addstudent.html")
+
+
+
+
+# dashboed
+def std_dashbord_view(request):
+    student = Student.objects.get(user = request.user)
+    issues = Issue.objects.filter(student = student).select_related('book')
+    unpaid_fine = Fine.objects.filter(student = student, is_paid=False)
+    total_fine = unpaid_fine.aggregate(
+        totle = Sum('ammount')
+    )['totle'] or 0
+
+    status_filter = request.GET.get('status','all')
+    if status_filter == 'issued':
+        issues = issues.filter(status='issued')
+    elif status_filter == 'requested':
+        issues = issues.filter(status='requested')
+
+    contex = {
+        'student': student,
+        'issues':issues,
+        'unpaid_fine': unpaid_fine,
+        'totle_fine': total_fine,
+    }
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'dashbord/partials/issue_rows.html', contex)
+    return render(request, "dashbord/student_dashbord.html", contex)
+
+def admin_dashbord_view(request):
+    return render(request, "dashbord/admin_dashbord.html")
+
+# def request_issue(request, book_id):
+#     book = get_object_or_404(Book, id=book_id)
+#     book.is_registered = True
+#     book.save()
+#     messages.success(request, "Request Sent")
+#     return JsonResponse({'status': 'success'})
+
+
+@login_required
+def request_issue(request, book_id):
+    student = Student.objects.get(user=request.user)
+    book = get_object_or_404(Book, id=book_id)
+
+    # Create issue request
+    Issue.objects.create(
+        student=student,
+        book=book,
+        status='requested'
+    )
+
+    messages.success(request, "Book issue request sent successfully.")
+
+    return JsonResponse({
+        'status': 'success',
+        'message': 'Request sent'
+    })
+

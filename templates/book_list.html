@@ -1,0 +1,144 @@
+{% comment %} <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  {% for book in books %}
+    <div class="bg-gray-50 border rounded p-4 shadow-sm">
+      <h3 class="text-lg font-bold truncate" title="{{ book.title }}">{{ book.title }}</h3>
+      <p class="text-gray-600">Author: {{ book.author }}</p>
+      <p class="text-gray-600">Category: {{ book.category }}</p>
+
+      <div class="mt-4">
+        {% if user.is_authenticated and not user.is_staff %}
+
+          <div id="status-container-{{ book.id }}">
+            {% if not book.is_available %}
+              <button disabled class="w-full text-sm px-3 py-2 bg-gray-100 text-gray-500 rounded-lg cursor-not-allowed">Already Issued</button>
+            {% elif book.is_registered %}
+              <button disabled class="w-full text-sm px-3 py-2 bg-orange-100 text-orange-700 rounded-lg">Issue Requested</button>
+            {% else %}
+              <button type="button" onclick="sendRequest(event, '{{ book.id }}')" class="w-full text-sm px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all font-bold">Request Issue</button>
+            {% endif %}
+          </div>
+
+
+        {% else %}
+          <div class="text-center">
+            {% if book.is_available %}
+              <span class="inline-block w-full text-sm px-3 py-1 bg-green-100 text-green-700 rounded-lg font-medium">Available</span>
+            {% else %}
+              <span class="inline-block w-full text-sm px-3 py-1 bg-red-100 text-red-700 rounded-lg font-medium">Issued</span>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="mt-auto pt-4 border-t flex items-center justify-center gap-2 shrink-0">
+  {% if books.has_previous %}
+    <button onclick="ajexHandel(null,'{{ books.previous_page_number }}')" class="p-2 hover:bg-gray-100 rounded">
+      <svg width="12" height="18" viewBox="0 0 12 18" fill="none">
+        <path d="M11 1L2 9.24242L11 17" stroke="#111820" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
+  {% endif %}
+
+  <div class="flex gap-1">
+    {% for num in books.paginator.page_range %}
+      {% if books.number == num %}
+        <span class="flex items-center justify-center w-8 h-8 bg-indigo-600 text-white rounded">{{ num }}</span>
+      {% elif num > books.number|add:'-3' and num < books.number|add:'3' %}
+        <button onclick="ajexHandel(null,'{{ num }}')" class="w-8 h-8 border border-gray-200 rounded hover:bg-gray-50">{{ num }}</button>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {% if books.has_next %}
+    <button onclick="ajexHandel(null,'{{ books.next_page_number }}')" class="p-2 hover:bg-gray-100 rounded">
+      <svg width="12" height="18" viewBox="0 0 12 18" fill="none">
+        <path d="M1 1L10 9.24242L1 17" stroke="#111820" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
+  {% endif %}
+</div> {% endcomment %}
+{% comment %} ------------------------------------------------------ {% endcomment %}
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+  {% for book in books %}
+    <div class="bg-gray-50 border rounded p-4 shadow-sm">
+      <h3 class="text-lg font-bold truncate">{{ book.title }}</h3>
+      <p class="text-gray-600">Author: {{ book.author }}</p>
+      <p class="text-gray-600">Category: {{ book.category }}</p>
+
+      <div class="mt-4">
+        {% if user.is_authenticated and not user.is_staff %}
+          <div id="status-container-{{ book.id }}">
+
+            {% if not book.is_available %}
+              <button disabled class="w-full text-sm px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
+                Already Issued
+              </button>
+
+            {% elif book.student_issue_status == 'requested' %}
+              <button disabled class="w-full text-sm px-3 py-2 bg-orange-100 text-orange-700 rounded-lg">
+                Issue Requested
+              </button>
+
+            {% elif book.student_issue_status == 'issued' %}
+              <button disabled class="w-full text-sm px-3 py-2 bg-green-100 text-green-700 rounded-lg">
+                Issued to You
+              </button>
+
+            {% else %}
+              <button type="button"
+                onclick="sendRequest(event, '{{ book.id }}')"
+                class="w-full text-sm px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold">
+                Request Issue
+              </button>
+            {% endif %}
+          </div>
+
+        {% else %}
+          <div class="text-center">
+            {% if book.is_available %}
+              <span class="block w-full bg-green-100 text-green-700 rounded-lg py-1">
+                Available
+              </span>
+            {% else %}
+              <span class="block w-full bg-red-100 text-red-700 rounded-lg py-1">
+                Issued
+              </span>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="mt-auto pt-4 border-t flex items-center justify-center gap-2 shrink-0">
+  {% if books.has_previous %}
+    <button onclick="ajexHandel(null,'{{ books.previous_page_number }}')" class="p-2 hover:bg-gray-100 rounded">
+      <svg width="12" height="18" viewBox="0 0 12 18" fill="none">
+        <path d="M11 1L2 9.24242L11 17" stroke="#111820" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
+  {% endif %}
+
+  <div class="flex gap-1">
+    {% for num in books.paginator.page_range %}
+      {% if books.number == num %}
+        <span class="flex items-center justify-center w-8 h-8 bg-indigo-600 text-white rounded">{{ num }}</span>
+      {% elif num > books.number|add:'-3' and num < books.number|add:'3' %}
+        <button onclick="ajexHandel(null,'{{ num }}')" class="w-8 h-8 border border-gray-200 rounded hover:bg-gray-50">{{ num }}</button>
+      {% endif %}
+    {% endfor %}
+  </div>
+
+  {% if books.has_next %}
+    <button onclick="ajexHandel(null,'{{ books.next_page_number }}')" class="p-2 hover:bg-gray-100 rounded">
+      <svg width="12" height="18" viewBox="0 0 12 18" fill="none">
+        <path d="M1 1L10 9.24242L1 17" stroke="#111820" stroke-width="2" stroke-linecap="round" />
+      </svg>
+    </button>
+  {% endif %}
+</div>
+
