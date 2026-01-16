@@ -168,6 +168,9 @@ document.addEventListener('input', function(e) {
   if (e.target && e.target.id === "search_book") {
     loadBooks(1);
   }
+  if (e.target && e.target.id === "search_author") {
+    loadAuthor(1);
+  }
 });
 
   function deleteBook(bookId){
@@ -182,6 +185,23 @@ document.addEventListener('input', function(e) {
     .then(data => {
       if(data.status === "success"){
         document.getElementById(`book-row-${bookId}`).remove();
+      }
+    })
+    .catch(err => console.log(err))
+  }
+
+  function deleteAuthor(authorId){
+    fetch(`/admindash/manage/authors/delete/${authorId}/`,{
+      method: 'POST',
+      headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      "X-CSRFToken": getCSRFToken()
+    }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if(data.status === "success"){
+        document.getElementById(`author-row-${authorId}`).remove();
       }
     })
     .catch(err => console.log(err))
@@ -215,6 +235,30 @@ document.addEventListener('input', function(e) {
     .catch(err => console.error(err));
   }
 
+
+  function loadAuthor(page=1){
+
+    let searchInput = document.getElementById("search_author")
+    let searchvalue = searchInput ? searchInput.value.trim() : "";
+
+    let url = `/admindash/manage/authors/?page=${page}`;
+
+    if (searchvalue.length > 0) {
+      url += `&w=${encodeURIComponent(searchvalue)}`;
+    }
+
+    fetch(url ,{
+      headers:{ 
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById("author-table-body").innerHTML = data.rows;
+      document.getElementById("author-pagination").innerHTML = data.pagination;
+    })
+    .catch(err => console.error(err));
+  }
 </script>
 
 <style>

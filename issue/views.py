@@ -10,7 +10,7 @@ from book.models import Book, Author, Category
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.contrib import messages
-
+from django.db.models import Count
 
 # Create your views here.
 
@@ -112,8 +112,43 @@ def delete_book_view(request, book_id):
     return JsonResponse({"status":"success"})
 
 @staff_member_required
+@require_POST
+def delete_author_view(request, author_id):
+    author = get_object_or_404(Author, id=author_id)
+    author.delete()
+    return JsonResponse({"status":"success"})
+
+@staff_member_required
 def author_management_view(request):
-    return render(request, "admin/author_management.html")
+    authors = Author.objects.annotate(book_count=Count('book')).exclude(name__contains=';')
+
+    search_w = request.GET.get("w")
+
+    if search_w:
+        authors = authors.filter(name__icontains=search_w)
+
+    paginator = Paginator(authors, 10) 
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        row_html = render_to_string(
+            "admin/partials/admin_author_rows.html",
+            {"authors":page_obj},
+            request=request
+        )
+        pagination_html = render_to_string(
+            "admin/partials/admin_author_pagination.html",
+            {"authors":page_obj},
+            request=request
+        )
+            
+        return JsonResponse({
+            "rows":row_html,
+            "pagination":pagination_html
+            })
+    
+    return render(request, "admin/author_management.html", {"authors":page_obj})
 
 @staff_member_required
 def fine_management_view(request):
