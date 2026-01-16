@@ -1,6 +1,3 @@
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,8 +34,43 @@
 
 </div>
 
+<div id="toast-container" class="fixed top-5 right-5 z-50 space-y-3">
+  {% if messages %}
+    {% for message in messages %}
+      <div
+        class="toast px-4 py-3 rounded-lg shadow-lg text-sm flex items-center gap-3
+        {% if message.tags == 'error' %}
+          bg-red-50 text-red-700 border border-red-200
+        {% else %}
+          bg-green-50 text-green-700 border border-green-200
+        {% endif %}">
+        
+        {% if message.tags == 'error' %}
+          <span class="text-red-600 text-lg">❌</span>
+        {% else %}
+          <span class="text-green-600 text-lg">✅</span>
+        {% endif %}
+
+        <span>{{ message }}</span>
+
+        <button onclick="this.parentElement.remove()"
+          class="ml-auto text-gray-400 hover:text-gray-600">
+          ✕
+        </button>
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>
+
+
 <!-- JS -->
 <script>
+  setTimeout(() => {
+    document.querySelectorAll('.toast').forEach(toast => {
+      toast.classList.add('opacity-0', 'translate-x-10');
+      setTimeout(() => toast.remove(), 500);
+    });
+  }, 3000);
 
   function loadSection(section) {
     fetch(`/admindash/manage/${section}/`)
@@ -112,7 +144,7 @@
     }
   });
 
-document.addEventListener('keyup', function(e) {
+document.addEventListener('input', function(e) {
   if (e.target && e.target.id === "search_bar") {
     const word = e.target.value.trim();
     let url = "/admindash/manage/issues/";
@@ -132,6 +164,9 @@ document.addEventListener('keyup', function(e) {
       document.getElementById("issue-table-body").innerHTML = data.html;
     })
     .catch(error => console.error(error))
+  }
+  if (e.target && e.target.id === "search_book") {
+    loadBooks(1);
   }
 });
 
@@ -157,8 +192,18 @@ document.addEventListener('keyup', function(e) {
   }
 
   function loadBooks(page=1){
-    fetch(`/admindash/manage/books/?page=${page}`,{
-      headers:{
+
+    let searchInput = document.getElementById("search_book")
+    let searchvalue = searchInput ? searchInput.value.trim() : "";
+
+    let url = `/admindash/manage/books/?page=${page}`;
+
+    if (searchvalue.length > 0) {
+      url += `&w=${encodeURIComponent(searchvalue)}`;
+    }
+
+    fetch(url ,{
+      headers:{ 
         "X-Requested-With": "XMLHttpRequest"
       }
     })

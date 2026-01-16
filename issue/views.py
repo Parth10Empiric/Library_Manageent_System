@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.admin.views.decorators import staff_member_required
 from .models import Issue
 from django.shortcuts import get_object_or_404
@@ -6,9 +6,11 @@ from django.utils.timezone import now
 from django.http import JsonResponse
 from django.template.loader import render_to_string
 from django.db.models import Q
-from book.models import Book
+from book.models import Book, Author, Category
 from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
+from django.contrib import messages
+
 
 # Create your views here.
 
@@ -67,11 +69,20 @@ def issue_management_view(request):
 
 @staff_member_required
 def book_management_view(request):
-    books_qs = Book.objects.all()
+    books_qs = Book.objects.all().order_by('-id')
+
+    search_w = request.GET.get("w")
+
+    if search_w:
+        books_qs = books_qs.filter(
+            Q(title__icontains=search_w) |
+            Q(author__name__icontains=search_w)
+        )
 
     paginator = Paginator(books_qs, 10) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         rows_html = render_to_string(
@@ -85,11 +96,12 @@ def book_management_view(request):
             {"books":page_obj},
             request=request
         )
-
+            
         return JsonResponse({
             "rows":rows_html,
             "pagination":pagination_html,   
         })
+    
     return render(request, "admin/book_management.html", {"books":page_obj})
 
 @staff_member_required
@@ -98,7 +110,6 @@ def delete_book_view(request, book_id):
     book = get_object_or_404(Book, id=book_id)
     book.delete()
     return JsonResponse({"status":"success"})
-
 
 @staff_member_required
 def author_management_view(request):
@@ -115,3 +126,22 @@ def student_management_view(request):
 @staff_member_required
 def user_management_view(request):
     return render(request, "admin/user_management.html")
+
+@staff_member_required
+def add_book_view(request):
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        author_name = request.POST.get('author')
+        category_name = request.POST.get('category')
+
+        author, _ = Author.objects.get_or_create(name = author_name.strip())
+        category, _ = Category.objects.get_or_create(name = category_name.strip())
+        Book.objects.create(
+            title = title,
+            author = author,
+            category = category,
+        )
+        messages.success(request, "Book Added Succesfully")
+        return redirect('admindash')
+
+    return render(request, "admin/partials/add_book.html")

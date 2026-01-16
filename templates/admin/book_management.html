@@ -4,16 +4,17 @@
 <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
   <div class="flex gap-3">
     <input
+      id="search_book"
       type="text"
       placeholder="Search by title, author or category"
       class="border px-3 py-2 rounded w-72 focus:outline-none focus:ring focus:ring-indigo-200"
     />
   </div>
 
-  <button
+  <a href="{% url 'add_book' %}"
     class="bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700 transition font-medium">
     + Add Book
-  </button>
+</a>
 </div>
   <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
@@ -38,7 +39,6 @@
 </table>
 
 {% comment %} pagination {% endcomment %}
-
 
 </div>
 
