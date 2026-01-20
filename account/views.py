@@ -220,6 +220,9 @@ def request_issue(request, book_id):
     student = Student.objects.get(user=request.user)
     book = get_object_or_404(Book, id=book_id)
 
+    book.is_registered = True
+    book.save()
+
     Issue.objects.create(
         student=student,
         book=book,

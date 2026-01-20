@@ -43,12 +43,14 @@ def issue_management_view(request):
             issue.status = 'issued'
             issue.issue_date = now().date()
             issue.book.is_available = False
+            issue.book.is_registered = False
             issue.book.save()
 
         elif action == 'return':
             issue.status = 'returned'
             issue.return_date = now().date()
             issue.book.is_available = True
+            issue.book.is_registered = False
             issue.book.save()
 
         issue.save()
