@@ -17,10 +17,12 @@
   </td>
 
   <td class="px-4 py-3 text-center">
+    {% if book.is_available %}
     <button onclick="deleteBook('{{ book.id }}')"
       class="text-red-600 hover:text-red-800 text-sm font-medium">
       Delete
     </button>
+    {% else %} - {% endif%}
   </td>
 </tr>
 {% empty %}

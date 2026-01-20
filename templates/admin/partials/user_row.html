@@ -1,0 +1,50 @@
+{% for ouser in allusers %}
+  <tr class="border-t hover:bg-gray-50 transition">
+    <td class="px-4 py-3 font-medium">
+      {{ ouser.username }}
+      <div class="text-xs text-gray-500">
+        {% if ouser.is_superuser %}
+           Superuser
+        {% elif ouser.is_staff %}
+           Staff
+        {% else %}
+          {{ ouser.student.sudent_id }}
+        {% endif %}
+      </div>
+    </td>
+    <td class="px-4 py-3">{{ ouser.email|default:'-' }}</td>
+    <td class="px-4 py-3">
+      {% if ouser.is_superuser %}
+        <span class="inline-block px-3 py-1 text-xs rounded-full bg-purple-100 text-purple-700">Admin</span>
+      {% elif ouser.is_staff %}
+        <span class="inline-block px-3 py-1 text-xs rounded-full bg-green-100 text-green-700">Staff</span>
+      {% else %}
+        <span class="inline-block px-3 py-1 text-xs rounded-full bg-blue-100 text-blue-700">Student</span>
+      {% endif %}
+    </td>
+    <td class="px-4 py-3 text-center">{{ user.last_login|date:'d/m/Y' }}</td>
+    <td class="px-4 py-3 text-center">{{ user.date_joined|date:'d/m/Y' }}</td>
+    <td class="px-4 py-3 text-center">
+      {% if user.is_active %}
+        <span class="inline-block px-3 py-1 text-xs rounded-full bg-green-100 text-green-700">Active</span>
+      {% else %}
+        <span class="inline-block px-3 py-1 text-xs rounded-full bg-red-100 text-red-700">Inactive</span>
+      {% endif %}
+    </td>
+    <td class="px-4 py-3 text-center">
+      {% if user.is_superuser %}
+        <a href="{% url 'changepassword' ouser.id %}" class="text-indigo-600 hover:underline text-sm">Change Password</a>
+      {% elif user.is_staff %}
+        {% if ouser.is_superuser %}
+           -
+        {% else %}
+          <a href="{% url 'changepassword' ouser.id %}" class="text-indigo-600 hover:underline text-sm">Change Password</a>
+        {% endif %}
+      {% endif %}
+    </td>
+  </tr>
+{% empty %}
+  <tr>
+    <td colspan="7" class="px-4 py-6 text-center text-gray-500">No users found.</td>
+  </tr>
+{% endfor %}

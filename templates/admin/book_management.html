@@ -11,10 +11,13 @@
     />
   </div>
 
-  <a href="{% url 'add_book' %}"
+  <button
+    type="button"
+    id="add-book-btn"
     class="bg-indigo-600 text-white px-5 py-2 rounded hover:bg-indigo-700 transition font-medium">
     + Add Book
-</a>
+  </button>
+
 </div>
   <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
 
@@ -45,4 +48,5 @@
 <div id="book-pagination">
   {% include "admin/partials/admin_book_pagination.html" %}
 </div>
+
 

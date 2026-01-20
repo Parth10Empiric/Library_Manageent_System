@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from book.models import Book
+from book.models import Book, Author, Category
 from issue.models import Issue
 from fines.models import Fine
 from django.core.paginator import Paginator
@@ -12,6 +12,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.db.models import Sum
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.http import require_GET
+from library_management_system import settings
 
 # Create your views here.
 
@@ -91,6 +93,45 @@ def home_view(request):
     
     return render(request, "home.html", context)
 
+@require_GET
+def book_detail_by_title(request):
+    title = request.GET.get("title")
+    book = Book.objects.select_related("author", "category").get(title=title)
+    return JsonResponse({
+        "author": book.author.name,
+        "category": book.category.name,
+    })
+
+@require_GET
+def smart_search(request):
+    term = request.GET.get("term", "")
+    author = request.GET.get("author")
+    category = request.GET.get("category")
+    search_type = request.GET.get("type")
+
+    books = Book.objects.select_related("author", "category")
+
+    if author:
+        books = books.filter(author__name=author)
+
+    if category:
+        books = books.filter(category__name=category)
+
+    if search_type == "title":
+        titles = books.filter(title__icontains=term).values_list("title", flat=True).distinct()
+        return JsonResponse(list(titles[:10]), safe=False)
+
+    if search_type == "author":
+        authors = Author.objects.filter(name__icontains=term).values_list("name", flat=True).distinct()
+        if category:
+            authors = authors.filter(book__category__name=category)
+        return JsonResponse(list(authors[:10]), safe=False)
+
+    if search_type == "category":
+        categories = Category.objects.filter(name__icontains=term).values_list("name", flat=True).distinct()
+        return JsonResponse(list(categories[:10]), safe=False)
+
+    return JsonResponse([], safe=False)
 
 def suggest_book(request):
     query = request.GET.get('term', '')
@@ -153,6 +194,7 @@ def std_dashbord_view(request):
         'issues':issues,
         'unpaid_fine': unpaid_fine,
         'totle_fine': total_fine,
+        "STRIPE_PUBLIC_KEY": settings.STRIPE_PUBLIC_KEY,
     }
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -176,14 +218,11 @@ def request_issue(request, book_id):
     student = Student.objects.get(user=request.user)
     book = get_object_or_404(Book, id=book_id)
 
-    # Create issue request
     Issue.objects.create(
         student=student,
         book=book,
         status='requested'
     )
-
-    messages.success(request, "Book issue request sent successfully.")
 
     return JsonResponse({
         'status': 'success',

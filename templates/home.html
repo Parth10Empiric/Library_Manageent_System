@@ -4,8 +4,19 @@
     <meta charset="UTF-8" />
     <title>Library Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      .suggestion-box {
+        position: absolute;
+        background: white;
+        border: 1px solid #ddd;
+        z-index: 50;
+        width: 100%;
+      }
+    </style>
   </head>
   <body class="bg-gray-100 h-screen flex flex-col">
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}" />
+
     {% include 'navbar.html' %}
     <div class="flex flex-grow">
       <aside class="w-72 bg-white border-r shadow-sm flex flex-col shrink-0 overflow-y-auto">
@@ -38,26 +49,28 @@
         </div>
 
         <!-- 2. Search & Filter Section -->
-        <form id="filter-form" onsubmit="ajexHandel(event)" method="GET" class="p-6 space-y-5">
+        <form id="filter-form" class="p-6 space-y-5">
           <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Search & Sort</h3>
 
-          <!-- Search by Title -->
+          <!-- Title -->
           <div class="relative">
             <label class="block text-sm font-medium text-gray-700 mb-1">Book Title</label>
-            <input type="text" autocomplete="off" name="s_title" placeholder="e.g. Gilead" id="book-search" class="search_book w-full border-gray-200 border p-2.5 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
-            <div id="suggestion-box" class="absolute left-0 right-0 bg-white border border-gray-200 hidden z-50 shadow-lg"></div>
+            <input type="text" autocomplete="off" id="book-search" name="s_title" placeholder="e.g. Gilead" id="book-search" class="search_book w-full border-gray-200 border p-2.5 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            <div id="title-box" class="absolute hidden bg-white border w-full z-50"></div>
           </div>
 
-          <!-- Search by Author -->
-          <div>
+          <!-- Author -->
+          <div class="relative">
             <label class="block text-sm font-medium text-gray-700 mb-1">Author</label>
-            <input type="text" name="s_author" placeholder="e.g. Marilynne" class="w-full border-gray-200 border p-2.5 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            <input type="text" id="author-input" name="s_author" placeholder="e.g. Marilynne" class="w-full border-gray-200 border p-2.5 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            <div id="author-box" class="absolute hidden bg-white border w-full z-50"></div>
           </div>
 
-          <!-- Search by Category -->
-          <div>
+          <!-- Category -->
+          <div class="relative">
             <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
-            <input type="text" name="s_category" placeholder="e.g. Fiction" class="w-full border-gray-200 border p-2.5 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            <input type="text" id="category-input" name="s_category" placeholder="e.g. Fiction" class="w-full border-gray-200 border p-2.5 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none" />
+            <div id="category-box" class="absolute hidden bg-white border w-full z-50"></div>
           </div>
 
           <!-- Sort Dropdown -->
@@ -87,77 +100,177 @@
     </footer>
 
     <script>
-
-      function ajexHandel(event, pageNumber = null) {
+      const form = document.getElementById('filter-form')
+      const ajaxWrapper = document.getElementById('ajax-wrapper')
+      
+      const titleInput = document.getElementById('book-search')
+      const authorInput = document.getElementById('author-input')
+      const categoryInput = document.getElementById('category-input')
+      
+      const titleBox = document.getElementById('title-box')
+      const authorBox = document.getElementById('author-box')
+      const categoryBox = document.getElementById('category-box')
+      
+      let selectedTitle = ''
+      
+      function ajexHandel(event = null, pageNumber = null) {
         if (event) event.preventDefault()
-        let url = new URL(window.location.href)
-        let params = new URLSearchParams(new FormData(document.getElementById('filter-form')))
-        if (pageNumber) {
-          params.set('page', pageNumber)
-        } else {
-          params.delete('page')
-        }
       
-        const finalUrl = `?${params.toString()}`
+        const params = new URLSearchParams(new FormData(form))
       
-        fetch(finalUrl, {
-          method: 'GET',
+        if (pageNumber) params.set('page', pageNumber)
+        else params.delete('page')
+      
+        fetch(`?${params.toString()}`, {
+          headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            ajaxWrapper.innerHTML = data.html
+            history.pushState({}, '', `?${params.toString()}`)
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+          })
+      }
+      function sendRequest(event, bookId) {
+        event.preventDefault()
+      
+        fetch(`/book_req/${bookId}/`, {
+          method: 'POST',
           headers: {
+            'X-CSRFToken': getCSRFToken(),
             'X-Requested-With': 'XMLHttpRequest'
           }
         })
-          .then((response) => {
-            if (!response.ok) throw new Error('Network response was not ok')
-            return response.json()
-          })
+          .then((res) => res.json())
           .then((data) => {
-            document.getElementById('ajax-wrapper').innerHTML = data.html
-            window.history.pushState({}, '', url)
-            window.scrollTo({ top: 0, behavior: 'smooth' })
+            if (data.status === 'success') {
+              const btn = document.getElementById(`issue-btn-${bookId}`)
+              btn.disabled = true
+              btn.innerText = 'Issue Requested'
+              btn.classList.remove('bg-indigo-600', 'text-white', 'hover:bg-indigo-700', 'font-bold')
+              btn.classList.add('bg-orange-100', 'text-orange-700', 'cursor-not-allowed')
+            }
           })
-          .catch((error) => {
-            console.error('There was a problem with the fetch operation:', error)
-          })
+          .catch((err) => console.error(err))
       }
-
-      const searchInput = document.getElementById('book-search')
-      const suggestionBox = document.getElementById('suggestion-box')
+      function getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+      function showSuggestions(list, box, callback) {
+        box.innerHTML = ''
+        box.classList.remove('hidden')
       
-      searchInput.addEventListener('keyup', function () {
-        const query = this.value
-      
-        if (query.length < 0) {
-          suggestionBox.classList.add('hidden')
+        if (!list.length) {
+          box.innerHTML = `<div class="px-3 py-2 text-sm text-gray-400">Not Found</div>`
           return
         }
       
-        fetch(`/home/searchbook/?term=${encodeURIComponent(query)}`)
-          .then((response) => response.json())
+        list.forEach((item) => {
+          const div = document.createElement('div')
+          div.className = 'px-3 py-2 hover:bg-indigo-50 cursor-pointer text-sm'
+          div.textContent = item
+          div.onclick = () => {
+            box.classList.add('hidden')
+            callback(item)
+          }
+          box.appendChild(div)
+        })
+      }
+      
+      titleInput.addEventListener('keyup', () => {
+        if (!titleInput.value) {
+          titleBox.classList.add('hidden')
+          return
+        }
+      
+        fetch(`/home/smart-search/?type=title&term=${titleInput.value}&author=${authorInput.value}&category=${categoryInput.value}`)
+          .then((res) => res.json())
           .then((data) => {
-            if (data.length > 0) {
-              suggestionBox.innerHTML = ''
-              suggestionBox.classList.remove('hidden')
+            showSuggestions(data, titleBox, (title) => {
+              titleInput.value = title
+              selectedTitle = title
       
-              data.forEach((title) => {
-                const item = document.createElement('div')
-                item.className = 'px-4 py-2 hover:bg-indigo-50 cursor-pointer text-sm'
-                item.textContent = title
-      
-                item.addEventListener('click', () => {
-                  searchInput.value = title
-                  suggestionBox.classList.add('hidden')
+              fetch(`/home/book-detail/?title=${encodeURIComponent(title)}`)
+                .then((res) => res.json())
+                .then((info) => {
+                  authorInput.value = info.author
+                  categoryInput.value = info.category
+                  authorInput.readOnly = true
+                  categoryInput.readOnly = true
+                  ajexHandel()
                 })
-      
-                suggestionBox.appendChild(item)
-              })
-            } else {
-              suggestionBox.innerHTML = 'Not Found'
-            }
+            })
           })
       })
       
+      authorInput.addEventListener('keyup', () => {
+        authorInput.readOnly = false
+        if (!authorInput.value) return
+      
+        fetch(`/home/smart-search/?type=author&term=${authorInput.value}&category=${categoryInput.value}`)
+          .then((res) => res.json())
+          .then((data) => {
+            showSuggestions(data, authorBox, (author) => {
+              authorInput.value = author
+              titleInput.value = ''
+              categoryInput.readOnly = false
+              ajexHandel()
+            })
+          })
+      })
+      
+      categoryInput.addEventListener('keyup', () => {
+        if (!categoryInput.value) return
+      
+        fetch(`/home/smart-search/?type=category&term=${categoryInput.value}`)
+          .then((res) => res.json())
+          .then((data) => {
+            showSuggestions(data, categoryBox, (category) => {
+              categoryInput.value = category
+              titleInput.value = ''
+              authorInput.value = ''
+              authorInput.readOnly = false
+              ajexHandel()
+            })
+          })
+      })
+      
+      authorInput.addEventListener('input', () => {
+        if (selectedTitle) {
+          titleInput.value = ''
+          selectedTitle = ''
+          authorInput.readOnly = false
+          categoryInput.readOnly = false
+        }
+      })
+      
+      categoryInput.addEventListener('input', () => {
+        if (selectedTitle) {
+          titleInput.value = ''
+          selectedTitle = ''
+          authorInput.readOnly = false
+          categoryInput.readOnly = false
+        }
+      })
+      
       document.addEventListener('click', (e) => {
-        if (!searchInput.contains(e.target)) suggestionBox.classList.add('hidden')
+        if (!e.target.closest('.relative')) {
+          titleBox.classList.add('hidden')
+          authorBox.classList.add('hidden')
+          categoryBox.classList.add('hidden')
+        }
+      })
+      
+      document.addEventListener('click', function (e) {
+        const link = e.target.closest('.pagination-link')
+        if (!link) return
+      
+        e.preventDefault()
+      
+        const page = link.getAttribute('data-page')
+        if (page) {
+          ajexHandel(null, page)
+        }
       })
     </script>
   </body>

@@ -21,6 +21,8 @@ from account import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('home/', views.home_view, name="home" ),
+    path("home/book-detail/", views.book_detail_by_title, name="book_detail_by_title"),
+    path("home/smart-search/", views.smart_search, name="smart_search"),
     path('home/searchbook/', views.suggest_book, name='searchbook'),
     path('auth/', include("account.urls")),
     path('stddash/', views.std_dashbord_view, name="stddash" ),

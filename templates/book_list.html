@@ -26,6 +26,7 @@
 
             {% else %}
               <button type="button"
+                id="issue-btn-{{ book.id }}"
                 onclick="sendRequest(event, '{{ book.id }}')"
                 class="w-full text-sm px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold">
                 Request Issue

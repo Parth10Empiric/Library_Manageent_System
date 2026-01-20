@@ -11,6 +11,12 @@
 <!-- NAVBAR -->
 {% include 'navbar.html' %} 
 
+<div id="successToast"
+     class="fixed top-5 right-5 hidden z-50 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2">
+
+
+</div>
+
 <div class="flex">
 
 <!-- SIDEBAR -->
@@ -63,8 +69,145 @@
 </div>
 
 
+
+<!-- _________________________________ADD BOOK POPUP_____________________________ -->
+<div id="addBookModal"
+     class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+
+  <div class="bg-white w-full max-w-3xl rounded-lg shadow-lg p-8 relative">
+
+    <!-- Close -->
+    <button id="closeAddBook" type="button"
+            class="absolute top-3 right-4 text-gray-500 hover:text-black text-xl">
+      ✕
+    </button>
+
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">📘 Add New Book</h2>
+    <p class="text-sm text-gray-500 mb-6">
+      Enter book details to add it to the library
+    </p>
+
+    <form id="addBookForm" class="space-y-6">
+      {% csrf_token %}
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Book Title</label>
+        <input type="text" name="title"
+               class="w-full border px-4 py-2 rounded focus:ring-indigo-200"
+               required>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Author</label>
+          <input type="text" name="author"
+                 class="w-full border px-4 py-2 rounded focus:ring-indigo-200"
+                 required>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <input type="text" name="category"
+                 class="w-full border px-4 py-2 rounded focus:ring-indigo-200"
+                 required>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-4 pt-4 border-t">
+        <button type="button" id="cancelAddBook"
+                class="px-5 py-2 rounded border text-gray-600">
+          Cancel
+        </button>
+        <button type="submit"
+                class="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+          Save Book
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
 <!-- JS -->
 <script>
+
+  // -----------------------------  add book    -------------------------------
+  document.addEventListener("DOMContentLoaded", () => {
+
+    const modal = document.getElementById("addBookModal")
+    const form = document.getElementById("addBookForm")
+
+    if (!modal || !form) {
+      console.error("Add Book modal or form missing")
+      return
+    }
+
+
+    document.addEventListener("click", function (e) {
+      const btn = e.target.closest("#add-book-btn")
+      if (!btn) return
+
+      e.preventDefault()
+      modal.classList.remove("hidden")
+      modal.classList.add("flex")
+    })
+
+
+    document.addEventListener("click", function (e) {
+      if (
+        e.target.id === "closeAddBook" ||
+        e.target.id === "cancelAddBook"
+      ) {
+        modal.classList.add("hidden")
+        modal.classList.remove("flex")
+        form.reset()
+      }
+    })
+
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault()
+
+      fetch("{% url 'add_book' %}", {
+        method: "POST",
+        headers: { "X-Requested-With": "XMLHttpRequest" },
+        body: new FormData(form)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          modal.classList.add("hidden")
+          modal.classList.remove("flex")
+          form.reset()
+
+          showSuccessToast(data.message)
+
+          ajexHandel()
+
+        } else {
+          alert("Failed to add book")
+        }
+      })
+    })
+
+  })
+  function showSuccessToast(message) {
+    const toast = document.getElementById("successToast")
+    if (!toast) return
+
+    toast.textContent = message
+    toast.classList.remove("hidden")
+
+    setTimeout(() => {
+      toast.classList.add("hidden")
+    }, 3000)
+  }
+
+
+
+  // ---------------------------------------------------------add book finish ------------- 
+
   setTimeout(() => {
     document.querySelectorAll('.toast').forEach(toast => {
       toast.classList.add('opacity-0', 'translate-x-10');
@@ -142,9 +285,50 @@
       })
       .catch(err => console.error(err));
     }
+    if(e.target.classList.contains("cash-toggle")){
+      const checkbox = e.target;
+      const fineId = checkbox.dataset.fineId;
+      const isPaid = checkbox.checked;
+
+      fetch(`/admindash/manage/fines/${fineId}/toggle-cash/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCSRFToken(),
+          "X-Requested-With": "XMLHttpRequest",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          is_paid: isPaid
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) {
+          alert(data.message || "Failed to update fine");
+          checkbox.checked = !isPaid; // revert toggle
+        }
+
+        const row = document.getElementById(`fine-row-${data.fine_id}`);
+        if (!row) {
+    console.error("Row not found:", data.fine_id);
+    return;
+  }
+        row.innerHTML = data.row_html;
+      })
+      .catch(error => console.error('Error:', error));
+    }
+    if (e.target && e.target.id === "department-filter") {
+      filterStudents();
+    }
+    if (e.target.id === "statusfilter" || e.target.id === "rollfilter"){
+      filterUser();
+    }
+    if (e.target && e.target.id === "fine_status") {
+      filterFine();
+    }
   });
 
-document.addEventListener('input', function(e) {
+  document.addEventListener('input', function(e) {
   if (e.target && e.target.id === "search_bar") {
     const word = e.target.value.trim();
     let url = "/admindash/manage/issues/";
@@ -165,13 +349,22 @@ document.addEventListener('input', function(e) {
     })
     .catch(error => console.error(error))
   }
+  if (e.target && e.target.id === "search_student") {
+        filterStudents();
+  }
   if (e.target && e.target.id === "search_book") {
     loadBooks(1);
   }
   if (e.target && e.target.id === "search_author") {
     loadAuthor(1);
   }
-});
+  if (e.target && e.target.id === "search-user") {
+        filterUser();
+  }
+  if (e.target && (e.target.id === "std_fine_search" || e.target.id === "book_fine_search")) {
+      filterFine();
+    }
+  });
 
   function deleteBook(bookId){
     fetch(`/admindash/manage/books/delete/${bookId}/`,{
@@ -202,6 +395,22 @@ document.addEventListener('input', function(e) {
     .then(data => {
       if(data.status === "success"){
         document.getElementById(`author-row-${authorId}`).remove();
+      }
+    })
+    .catch(err => console.log(err))
+  }
+  function deleteStudent(studentId){
+    fetch(`/admindash/manage/students/delete/${studentId}/`,{
+      method: 'POST',
+      headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      "X-CSRFToken": getCSRFToken()
+    }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if(data.status === "success"){
+        document.getElementById(`student-row-${studentId}`).remove();
       }
     })
     .catch(err => console.log(err))
@@ -259,21 +468,92 @@ document.addEventListener('input', function(e) {
     })
     .catch(err => console.error(err));
   }
-</script>
 
-<style>
-  .sidebar-btn {
-    width: 100%;
-    text-align: left;
-    padding: 8px;
-    border-radius: 6px;
-    font-weight: 500;
+  function filterStudents(){
+    const searchInput = document.getElementById('search_student');
+    const deptSelect = document.getElementById('department-filter');
+
+    const burl = '/admindash/manage/students/';
+    const params = new URLSearchParams();
+
+    const word = searchInput.value.trim();
+    const dept = deptSelect.value;
+
+    if (word) params.set('w', word)
+    if (dept) params.set('department', dept)
+
+    const url = `${burl}?${params.toString()}`;
+
+    fetch(url, {
+      method: 'GET',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("students-table-body").innerHTML = data.html;        
+    })
+    .catch(error => console.error('Error:', error));
   }
-  .sidebar-btn:hover {
-    background: #eef2ff;
-    color: #4338ca;
+
+  function filterFine(){
+    const searchbook = document.getElementById('book_fine_search');
+    const searchstd = document.getElementById('std_fine_search');
+    const fineselect = document.getElementById('fine_status');
+
+    const burl = '/admindash/manage/fines/';
+    const params = new URLSearchParams();
+
+    const bookword = searchbook.value.trim();
+    const stdword = searchstd.value.trim();
+    const finestatus = fineselect.value;
+
+    if (bookword) params.set('bookword', bookword)
+    if (stdword) params.set('stdword', stdword)
+    if (finestatus) params.set('finestatus', finestatus)
+
+    const url = `${burl}?${params.toString()}`;
+
+    fetch(url, {
+      method: 'GET',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("fine-table-body").innerHTML = data.html;        
+    })
+    .catch(error => console.error('Error:', error));
   }
-</style>
+
+  function filterUser(){
+    const searchInput = document.getElementById('search-user');
+    const rollselect = document.getElementById('rollfilter');
+    const statustSelect = document.getElementById('statusfilter');    
+
+    const burl = '/admindash/manage/users/';
+    const params = new URLSearchParams();
+
+    const word = searchInput.value.trim();
+    const roll = rollselect.value;
+    const status = statustSelect.value;
+
+    if (word) params.set('w', word)
+    if (roll) params.set('roll', roll)
+    if (status) params.set('status', status)
+
+    const url = `${burl}?${params.toString()}`;
+
+    fetch(url, {
+      method: 'GET',
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById("users-table-body").innerHTML = data.html;        
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
+</script>
 
 </body>
 </html>
