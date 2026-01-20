@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_GET
 from library_management_system import settings
+from fines.utils import update_fines
 
 # Create your views here.
 
@@ -176,6 +177,7 @@ def add_student_view(request):
 
 # dashboed
 def std_dashbord_view(request):
+    update_fines()
     student = Student.objects.get(user = request.user)
     issues = Issue.objects.filter(student = student).select_related('book')
     unpaid_fine = Fine.objects.filter(student = student, is_paid=False)

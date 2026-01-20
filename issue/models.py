@@ -6,7 +6,7 @@ from datetime import date, timedelta
 # Create your models here.
 
 def seven_days_hence():
-    return date.today() + timedelta(days=14)
+    return date.today() + timedelta(days=7)
 
 class Issue(models.Model):
     CHOICES = (

@@ -51,6 +51,9 @@
     {% if issue.status == 'requested' %}
       <span class="text-gray-400 text-xs">Waiting Approval</span>
 
+    {% elif issue.status == 'issued' %}
+      <span class="text-gray-400 text-xs">Return First</span>
+
     {% elif issue.fine %}
       {% if issue.fine.is_paid %}
         <span class="px-3 py-1.5 bg-green-100 text-green-700 rounded text-xs font-semibold">

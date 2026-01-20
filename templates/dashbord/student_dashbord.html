@@ -14,25 +14,13 @@
       {% for message in messages %}
         <div class="mb-4 p-3 rounded 
         {% if message.tags == 'success' %}
-            
-            
              bg-green-100 text-green-800
 
-
-
           {% elif message.tags == 'error' %}
-            
-            
              bg-red-100 text-red-800
 
-
-
           {% else %}
-            
-            
              bg-gray-100 text-gray-800
-
-
           {% endif %}">{{ message }}</div>
       {% endfor %}
     {% endif %}
@@ -47,7 +35,7 @@
         <div class="text-right">
           <p class="text-gray-500">{{ total_fine }}</p>
           <p class="text-2xl font-bold text-red-600">₹{{ totle_fine|default:'0' }}</p>
-          <button id="payTotalBtn" class="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Pay Total Fine</button>
+          <button onclick="openPayModal('total')" class="mt-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">Pay Total Fine</button>
         </div>
       </div>
 
@@ -128,24 +116,6 @@
               window.location.href = data.url
             })
         })
-      })
-      
-      document.getElementById('payTotalBtn')?.addEventListener('click', function () {
-        fetch('/stddash/payments/total-create-intent/', {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': '{{ csrf_token }}',
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.url) {
-              window.location.href = data.url
-            } else {
-              alert(data.error || 'Unable to start total payment')
-            }
-          })
       })
     </script>
   </body>
