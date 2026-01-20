@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from .models import Fine, Payment
 from django.contrib import messages
+from django.urls import reverse
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -28,8 +29,8 @@ def create_checkout_session(request):
             },
             "quantity": 1,
         }],
-        success_url="http://127.0.0.1:8000/stddash/payments/success/?session_id={CHECKOUT_SESSION_ID}",
-        cancel_url="http://127.0.0.1:8000/stddash/",
+        success_url = (settings.BASE_URL + reverse("payment_success") + "?session_id={CHECKOUT_SESSION_ID}" ),
+        cancel_url = settings.BASE_URL + reverse("stddash"),
         metadata={
             "fine_id": str(fine.id),
         },
@@ -109,8 +110,8 @@ def create_total_checkout_session(request):
             },
             "quantity": 1,
         }],
-        success_url="http://127.0.0.1:8000/stddash/payments/total-success/?session_id={CHECKOUT_SESSION_ID}",
-        cancel_url="http://127.0.0.1:8000/stddash/",
+        success_url = (settings.BASE_URL + reverse("payment_success") + "?session_id={CHECKOUT_SESSION_ID}" ),
+        cancel_url = settings.BASE_URL + reverse("stddash"),
         metadata={
             "fine_ids": ",".join(str(f.id) for f in unpaid_fines),
         },
