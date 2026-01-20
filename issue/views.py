@@ -154,6 +154,19 @@ def author_management_view(request):
     return render(request, "admin/author_management.html", {"authors":page_obj})
 
 @staff_member_required
+def author_detail(request, author_id):
+    author = Author.objects.get(id=author_id)
+    books = Book.objects.filter(author=author)
+
+    data = {
+        "name": author.name,
+        "book_count": books.count(),
+        "books": list(books.values_list('title', flat=True))
+    }
+
+    return JsonResponse(data)
+
+@staff_member_required
 def fine_management_view(request):
     fines = Fine.objects.all()
 

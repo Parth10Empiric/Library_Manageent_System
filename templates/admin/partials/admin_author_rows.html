@@ -1,5 +1,5 @@
   {% for author in authors %}
-    <tr class="border-t hover:bg-gray-50 transition" id="author-row-{{ author.id }}">
+    <tr class="border-t hover:bg-gray-50 transition" onclick="openAuthorModal('{{ author.id }}')" id="author-row-{{ author.id }}">
       <td class="px-4 py-3 font-medium">{{ author.name }}</td>
       <td class="px-4 py-3 text-center">{{ author.book_count }}</td>
       <td class="px-4 py-3 text-center">
