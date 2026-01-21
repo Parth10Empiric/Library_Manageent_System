@@ -128,9 +128,11 @@ Open your browser and visit:
 ```text
 http://127.0.0.1:8000/
 ```
-### 🔒 Security & Configuration
+## 🔒 Security & Configuration
 
-CSRF Protection: Fully enabled for all AJAX/Fetch API requests to prevent cross-site request forgery.
-Access Control: Strict role-based permissions implemented using Django Decorators and Mixins to protect views.
-Static Setup: Ensure DEBUG=True is set in settings.py during development to properly serve images via STATICFILES_DIRS.
-Payments: Replace the placeholder STRIPE_SECRET_KEY in your settings.py with your actual Stripe API credentials for live testing.
+* **CSRF Protection:** Fully enabled for all **AJAX/Fetch API** requests to prevent cross-site request forgery.
+* **Access Control:** Strict role-based permissions implemented using Django **Decorators** and **Mixins** to ensure only authorized users can access specific views.
+* **Static Setup:** Ensure `DEBUG=True` is set in `settings.py` during development to properly serve images and assets via `STATICFILES_DIRS`.
+* **Payments:** Replace the placeholder `STRIPE_SECRET_KEY` in your `settings.py` with your actual Stripe API credentials for live testing.
+
+---
