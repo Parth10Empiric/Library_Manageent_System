@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.contrib import messages
 from account.models import Student
-from fines.models import Fine, Payment
+from fines.models import Fine
 import json
 
 # Create your views here.
@@ -20,7 +20,7 @@ import json
 @staff_member_required
 def issue_management_view(request):
 
-    issues = Issue.objects.select_related('student', 'book').all()
+    issues = Issue.objects.select_related('student', 'book').all().order_by("-id")
 
     issue_id = request.GET.get("issue_id")
     action = request.GET.get("action")
@@ -170,7 +170,7 @@ def author_detail(request, author_id):
 
 @staff_member_required
 def fine_management_view(request):
-    fines = Fine.objects.all()
+    fines = Fine.objects.all().order_by("-id")
 
     bookword = request.GET.get("bookword")
     stdword = request.GET.get("stdword")

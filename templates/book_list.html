@@ -14,15 +14,15 @@
                 Issued to You
               </button>
 
+              {% elif book.student_issue_status == 'requested' %}
+                <button disabled class="w-full text-sm px-3 py-2 bg-orange-100 text-orange-700 rounded-lg">
+                  Issue Requested
+                </button>
             {% elif book.is_registered %}
               <button disabled class="w-full text-sm px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg">
                 Registered
               </button>
 
-            {% elif book.student_issue_status == 'requested' %}
-              <button disabled class="w-full text-sm px-3 py-2 bg-orange-100 text-orange-700 rounded-lg">
-                Issue Requested
-              </button>
 
             {% elif not book.is_available %}
               <button disabled class="w-full text-sm px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
