@@ -70,6 +70,35 @@
     </div>
 
     <!-- Pay Fine -->
+     <!-- Pay Modal -->
+<div
+  id="payModal"
+  class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50"
+>
+  <div class="bg-white rounded shadow-lg w-96 p-6">
+    <h3 class="text-lg font-semibold mb-4">Pay Fine</h3>
+
+    <p class="mb-4">
+      Are you sure you want to proceed with payment?
+    </p>
+
+    <div class="flex justify-end space-x-3">
+      <button
+        onclick="closePayModal()"
+        class="px-4 py-2 border rounded hover:bg-gray-100">
+        Cancel
+      </button>
+
+      <button
+        id="payNowBtn"
+        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+        Pay Now
+      </button>
+    </div>
+  </div>
+</div>
+
+
 
     <!-- JS -->
     <script>
@@ -99,22 +128,91 @@
       document.querySelectorAll('[data-fine-id]').forEach((btn) => {
         btn.addEventListener('click', () => {
           const fineId = btn.dataset.fineId
-      
+        
           fetch('/stddash/payments/create-intent/', {
             method: 'POST',
             headers: {
               'X-CSRFToken': '{{ csrf_token }}',
-              'Content-Type': 'application/x-www-form-urlencoded'
+              'Content-Type': 'application/x-www-form-urlencoded',
+              'X-Requested-With': 'XMLHttpRequest'
             },
-            body: 'fine_id=' + fineId
+            body: 'fine_id=' + encodeURIComponent(fineId)
           })
-            .then((res) => res.json())
-            .then((data) => {
-              console.log('Stripe checkout URL:', data.url)
-      
-              // 🔥 THIS MUST OPEN stripe.com
+            .then(res => res.json())
+            .then(data => {
+            
+              if (!data.url) {
+                alert(
+                  data.message ||
+                  ('Fine paid already')
+                )
+                return; 
+              }
+            
               window.location.href = data.url
             })
+            .catch(err => {
+              console.error(err)
+              alert('Something went wrong. Please try again.')
+            })
+        })
+      })
+       let payType = null
+
+      function openPayModal(type) {
+        payType = type
+      
+        const modal = document.getElementById("payModal")
+        if (!modal) {
+          console.error("payModal not found")
+          return
+        }
+      
+        modal.classList.remove("hidden")
+        modal.classList.add("flex")
+      }
+    
+      function closePayModal() {
+        const modal = document.getElementById("payModal")
+        if (!modal) return
+      
+        modal.classList.add("hidden")
+        modal.classList.remove("flex")
+      }
+    
+      document.getElementById("payNowBtn").addEventListener("click", function () {
+      
+        if (payType !== "total") return
+      
+        this.disabled = true
+        this.innerText = "Processing..."
+      
+        fetch("/stddash/payments/create-total-intent/", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "X-Requested-With": "XMLHttpRequest"
+          }
+        })
+        .then(res => {
+          if (!res.ok) {
+            throw new Error("Server error")
+          }
+          return res.json()
+        })
+        .then(data => {
+        
+          if (!data.url) {
+            alert(data.error || "No unpaid fines remaining.")
+            window.location.reload()
+            return
+          }
+        
+          window.location.href = data.url
+        })
+        .catch(err => {
+          alert("alert paid already")
+          window.location.reload()
         })
       })
     </script>

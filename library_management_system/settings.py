@@ -82,11 +82,20 @@ WSGI_APPLICATION = 'library_management_system.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'lms_db',
+        'USER': 'admin',
+        'PASSWORD': 'admin',
+        'HOST': 'localhost',  # Or the IP/hostname of your PostgreSQL server
+        'PORT': '5432',  # The default port for PostgreSQL
     }
 }
-
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -97,6 +106,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "OPTIONS": {"min_length": 8},
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',

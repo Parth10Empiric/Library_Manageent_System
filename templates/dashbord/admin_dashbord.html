@@ -387,12 +387,38 @@
 
         const row = document.getElementById(`fine-row-${data.fine_id}`);
         if (!row) {
-    console.error("Row not found:", data.fine_id);
-    return;
-  }
+          console.error("Row not found:", data.fine_id);
+          return;
+        } 
         row.innerHTML = data.row_html;
       })
       .catch(error => console.error('Error:', error));
+    }
+    if (e.target.classList.contains("fine-amount-input")) {
+
+      const input = e.target
+      const fineId = input.dataset.fineId
+      const amount = input.value
+
+      fetch(`/admindash/manage/fines/${fineId}/update-amount/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCSRFToken(),
+          "X-Requested-With": "XMLHttpRequest",
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `amount=${encodeURIComponent(amount)}`
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (!data.success) {
+          alert(data.message || "Failed to update fine")
+          return
+        }
+      })
+      .catch(() => {
+        alert("Server error while updating fine")
+      })
     }
     if (e.target && e.target.id === "department-filter") {
       filterStudents();

@@ -1,86 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+  <head>
+    <meta charset="UTF-8" />
     <title>Add New Student | LMS 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-50 min-h-screen">
+  </head>
+  <body class="bg-slate-50 min-h-screen">
     {% include 'navbar.html' %}
 
     <div class="max-w-4xl mx-auto mt-10 px-4">
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-8 border-b border-slate-100 flex justify-between items-center">
-                <div>
-                    <h1 class="text-2xl font-bold text-slate-800">Add New Student</h1>
-                    <p class="text-slate-500 text-sm">Create a new student profile and system account.</p>
-                </div>
-                <a href="{% url 'admindash' %}" class="text-sm text-indigo-600 hover:underline">← Back to Dashboard</a>
-            </div>
-
-            {% if messages %}
-                {% for message in messages %}
-                    <div class="mx-8 mt-6 p-4 rounded-lg {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-
-            <form method="POST" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-                {% csrf_token %}
-                
-                <!-- Account Section -->
-                <div class="md:col-span-2">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Account Credentials</h3>
-                </div>
-                
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Username (for login)</label>
-                    <input type="text" name="username" required class="w-full border-slate-300 border p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
-                    <input type="password" name="password" required class="w-full border-slate-300 border p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-
-                <!-- Profile Section -->
-                <div class="md:col-span-2 mt-4 pt-4 border-t">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Student Information</h3>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
-                    <input type="text" name="name" required class="w-full border-slate-300 border p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Student ID (Unique)</label>
-                    <input type="text" name="student_id" required class="w-full border-slate-300 border p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Department</label>
-                    <select name="department" class="w-full border-slate-300 border p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Information Technology">Information Technology</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Mechanical">Mechanical</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
-                    <input type="text" name="phone" required class="w-full border-slate-300 border p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-
-                <div class="md:col-span-2 pt-6">
-                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-200">
-                        Create Student Account
-                    </button>
-                </div>
-            </form>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-8 border-b border-slate-100 flex justify-between items-center">
+          <div>
+            <h1 class="text-2xl font-bold text-slate-800">Add New Student</h1>
+            <p class="text-slate-500 text-sm">Create a new student profile and system account.</p>
+          </div>
+          <a href="{% url 'admindash' %}" class="text-sm text-indigo-600 hover:underline">← Back to Dashboard</a>
         </div>
+
+        {% if messages %}
+          {% for message in messages %}
+            <div class="mx-8 mt-6 p-4 rounded-lg {% if message.tags == 'error' %}
+                bg-red-50 text-red-700 border border-red-200
+              {% else %}
+                bg-green-50 text-green-700 border border-green-200
+              {% endif %}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+          {% csrf_token %}
+
+          <!-- Account Section -->
+          <div class="md:col-span-2">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Account Credentials</h3>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Username (for login)</label>
+            <input type="text" name="username" required class="w-full border-slate-300 border p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Password</label>
+            <input type="password" name="password" required class="w-full border-slate-300 border p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
+          </div>
+
+          <!-- Profile Section -->
+          <div class="md:col-span-2 mt-4 pt-4 border-t">
+            <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Student Information</h3>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+            <input type="text" name="name" required class="w-full border-slate-300 border p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Student ID (Auto Generated)</label>
+            <input type="text" value="{{ generated_student_id }}" readonly class="w-full border-slate-300 border p-2.5 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed" />
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Department</label>
+            <select name="department" class="w-full border-slate-300 border p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+              <option value="Computer Science">Computer Science</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Mechanical">Mechanical</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+            <input type="text" name="phone" required class="w-full border-slate-300 border p-2.5 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" />
+          </div>
+
+          <div class="md:col-span-2 pt-6">
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition-all shadow-lg shadow-indigo-200">Create Student Account</button>
+          </div>
+        </form>
+      </div>
     </div>
-</body>
+  </body>
 </html>

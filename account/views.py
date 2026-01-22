@@ -15,6 +15,9 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.views.decorators.http import require_GET
 from library_management_system import settings
 from fines.utils import update_fines
+from django.utils import timezone
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 # Create your views here.
 
@@ -130,6 +133,8 @@ def smart_search(request):
 
     if search_type == "category":
         categories = Category.objects.filter(name__icontains=term).values_list("name", flat=True).distinct()
+        if author:
+            categories = categories.filter(book__author__name=author)
         return JsonResponse(list(categories[:10]), safe=False)
 
     return JsonResponse([], safe=False)
@@ -145,32 +150,54 @@ def suggest_book(request):
 # add student
 @staff_member_required
 def add_student_view(request):
+
+    year = timezone.now().year
+    last_student = Student.objects.order_by("-id").first()
+    next_id = f"STD{year}-{(last_student.id + 1 if last_student else 1):04d}"
+
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         name = request.POST.get('name')
-        studentId = request.POST.get('student_id')
         department = request.POST.get('department')
         phone = request.POST.get('phone')
 
         if User.objects.filter(username=username).exists():
-            messages.error(request, "user alredy available")
-        elif Student.objects.filter(sudent_id= studentId).exists():
-            messages.error(request, "UserId available")
-        else:
-            new_user = User.objects.create_user(username=username, password=password)
+            messages.error(request, "Username already exists.")
+            return redirect("addstd")
 
-            Student.objects.create(
-                user = new_user,
-                sudent_id = studentId,
-                department = department,
-                name = name,
-                phone = phone,
+
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            for error in e.messages:
+                messages.error(request, error)
+            return redirect("addstd")
+
+    
+        new_user = User.objects.create_user(username=username, password=password)
+
+        try:
+            student = Student(
+                user=new_user,
+                name=name,
+                department=department,
+                phone=phone
             )
-            messages.success(request, "Add Student successfully")
-            return redirect('admindash')
+            student.full_clean()   # triggers phone + model validators
+            student.save()
+
+        except ValidationError as e:
+            # rollback user if student creation fails
+            new_user.delete()
+            for field_errors in e.message_dict.values():
+                for error in field_errors:
+                    messages.error(request, error)
+            return redirect("addstd")
+        messages.success(request, "Add Student successfully")
+        return redirect('admindash')
         
-    return render(request, "auth/addstudent.html")
+    return render(request, "auth/addstudent.html", {"generated_student_id": next_id})
 
 
 

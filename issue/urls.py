@@ -16,5 +16,7 @@ urlpatterns = [
     path("authors/delete/<int:author_id>/", views.delete_author_view, name="delete_author"),
     path("students/delete/<int:student_id>/", views.delete_student_view, name="delete_student"),
     path("students/edit/<int:student_id>/", views.edit_student_view, name="editstudent"),
+    path("fines/<int:fine_id>/update-amount/", views.update_fine_amount, name="update_fine_amount"),
+
 
 ]

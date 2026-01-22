@@ -21,9 +21,23 @@
         Paid
       </span>
     </td>
-  {% else %}
-    <td class="px-4 py-3 text-center font-semibold text-red-600">
+  {% elif not fine.is_paid %}
+    {% comment %} <td class="px-4 py-3 text-center font-semibold text-red-600">
       {{ fine.ammount }}
+    </td> {% endcomment %}
+    <td class="px-4 py-3 text-center">
+      {% if not fine.is_paid %}
+        <input
+          type="number"
+          min="0"
+          step="0.01"
+          value="{{ fine.ammount }}"
+          class="w-24 border rounded px-2 py-1 text-sm text-red-700 focus:ring focus:ring-indigo-200 fine-amount-input"
+          data-fine-id="{{ fine.id }}"
+        />
+      {% else %}
+        <span class="font-semibold text-green-600">{{ fine.ammount }}</span>
+      {% endif %}
     </td>
 
     <td class="px-4 py-3 text-center">

@@ -14,6 +14,9 @@ from django.contrib import messages
 from account.models import Student
 from fines.models import Fine
 import json
+from django.core.exceptions import ValidationError
+from django.core.validators import validate_email
+from decimal import Decimal
 
 # Create your views here.
 
@@ -210,15 +213,19 @@ def fine_management_view(request):
 def toggle_cash_payment(request, fine_id):
     fine = get_object_or_404(Fine, id=fine_id)
 
+    if fine.is_paid:
+        return JsonResponse({
+            "success": False,
+            "message": "Fine already paid."
+        }, status=400)
+
     data = json.loads(request.body.decode("utf-8"))
     is_paid = data.get("is_paid")
 
     if is_paid:
-        print("llllllllllllllllll")
         fine.is_paid = True
         fine.payment_mode = "cash"
     else:
-        print("ffffffffffffffffffffffffff")
         fine.is_paid = False
         fine.payment_mode = None
 
@@ -237,6 +244,40 @@ def toggle_cash_payment(request, fine_id):
     })
 
 
+@staff_member_required
+@require_POST
+def update_fine_amount(request, fine_id):
+    try:
+        fine = Fine.objects.get(id=fine_id)
+    except Fine.DoesNotExist:
+        return JsonResponse({"success": False, "message": "Fine not found"}, status=404)
+
+    if fine.is_paid:
+        return JsonResponse({
+            "success": False,
+            "message": "Cannot modify a paid fine"
+        }, status=400)
+
+    try:
+        amount = Decimal(request.POST.get("amount"))
+        if amount < 1:
+            raise ValueError
+    except:
+        return JsonResponse({
+            "success": False,
+            "message": "Invalid amount"
+        }, status=400)
+
+    fine.ammount = amount
+    fine.save(update_fields=["ammount"])
+
+    return JsonResponse({
+        "success": True,
+        "fine_id": fine.id,
+        "amount": str(fine.ammount)
+    })
+
+    
 @staff_member_required
 def student_management_view(request):
     students = Student.objects.select_related('user').annotate(
@@ -280,6 +321,25 @@ def edit_student_view(request, student_id):
     student = get_object_or_404(Student, id=student_id)
 
     if request.method == "POST":
+
+        email = request.POST.get("email", "").strip()
+
+        if email:
+            try:
+                validate_email(email)
+            except ValidationError:
+                messages.error(request, "Enter a valid email address.")
+                return redirect("editstudent", student_id=student.id)
+
+            # Check duplicate email
+            if (
+                User.objects
+                .filter(email=email)
+                .exclude(id=student.user.id)
+                .exists()
+            ):
+                messages.error(request, "This email is already in use.")
+                return redirect("editstudent", student_id=student.id)
 
         if Student.objects.filter(sudent_id= request.POST.get("student_id")).exclude(id=student.id).exists():
             messages.error(request, "StudentId alredy available")

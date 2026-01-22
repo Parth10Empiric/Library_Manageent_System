@@ -1,59 +1,51 @@
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
   {% for book in books %}
-    <div class="bg-gray-50 border rounded p-4 shadow-sm">
-      <h3 class="text-lg font-bold truncate">{{ book.title }}</h3>
-      <p class="text-gray-600">Author: {{ book.author }}</p>
-      <p class="text-gray-600">Category: {{ book.category }}</p>
+    {% if user.is_authenticated %}
+      <div class="bg-gray-50 border rounded p-4 shadow-sm">
+        <h3 class="text-lg font-bold truncate">{{ book.title }}</h3>
+        <p class="text-gray-600">Author: {{ book.author }}</p>
+        <p class="text-gray-600">Category: {{ book.category }}</p>
 
-      <div class="mt-4">
-        {% if user.is_authenticated and not user.is_staff %}
-          <div id="status-container-{{ book.id }}">
-
-            {% if book.student_issue_status == 'issued' %}
-              <button disabled class="w-full text-sm px-3 py-2 bg-green-100 text-green-700 rounded-lg">
-                Issued to You
-              </button>
-
+        <div class="mt-4">
+          {% if user.is_authenticated and not user.is_staff %}
+            <div id="status-container-{{ book.id }}">
+              {% if book.student_issue_status == 'issued' %}
+                <button disabled class="w-full text-sm px-3 py-2 bg-green-100 text-green-700 rounded-lg">Issued to You</button>
               {% elif book.student_issue_status == 'requested' %}
-                <button disabled class="w-full text-sm px-3 py-2 bg-orange-100 text-orange-700 rounded-lg">
-                  Issue Requested
-                </button>
-            {% elif book.is_registered %}
-              <button disabled class="w-full text-sm px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg">
-                Registered
-              </button>
-
-
-            {% elif not book.is_available %}
-              <button disabled class="w-full text-sm px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">
-                Already Issued
-              </button>
-
-            {% else %}
-              <button type="button"
-                id="issue-btn-{{ book.id }}"
-                onclick="sendRequest(event, '{{ book.id }}')"
-                class="w-full text-sm px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold">
-                Request Issue
-              </button>
-            {% endif %}
-          </div>
-
-        {% else %}
-          <div class="text-center">
-            {% if book.is_available %}
-              <span class="block w-full bg-green-100 text-green-700 rounded-lg py-1">
-                Available
-              </span>
-            {% else %}
-              <span class="block w-full bg-red-100 text-red-700 rounded-lg py-1">
-                Issued
-              </span>
-            {% endif %}
-          </div>
-        {% endif %}
+                <button disabled class="w-full text-sm px-3 py-2 bg-orange-100 text-orange-700 rounded-lg">Issue Requested</button>
+              {% elif book.is_registered %}
+                <button disabled class="w-full text-sm px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg">Registered</button>
+              {% elif not book.is_available %}
+                <button disabled class="w-full text-sm px-3 py-2 bg-gray-100 text-gray-500 rounded-lg">Already Issued</button>
+              {% else %}
+                <button type="button" id="issue-btn-{{ book.id }}" onclick="sendRequest(event, '{{ book.id }}')" class="w-full text-sm px-3 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-bold">Request Issue</button>
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="text-center">
+              {% if book.is_available %}
+                <span class="block w-full bg-green-100 text-green-700 rounded-lg py-1">Available</span>
+              {% else %}
+                <span class="block w-full bg-red-100 text-red-700 rounded-lg py-1">Issued</span>
+              {% endif %}
+            </div>
+          {% endif %}
+        </div>
       </div>
-    </div>
+    {% else %}
+     
+        <div class="bg-gray-50 border rounded p-4 shadow-sm">
+          <h3 class="text-lg font-bold truncate">{{ book.title }}</h3>
+          <p class="text-gray-600">Author: {{ book.author }}</p>
+          <p class="text-gray-600">Category: {{ book.category }}</p>
+
+          <div class="mt-4">
+            <div class="text-center">
+              <span class="block w-full bg-green-100 text-green-700 rounded-lg py-1">Available</span>
+            </div>
+          </div>
+        </div>
+    {% endif %}
   {% endfor %}
 </div>
 
@@ -84,4 +76,3 @@
     </button>
   {% endif %}
 </div>
-

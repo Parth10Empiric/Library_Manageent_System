@@ -24,14 +24,19 @@ class Fine(models.Model):
     )
 
     def __str__(self):
-        return f"Fine - {self.student.sudent_id}"
+        return f"Fine - {self.student.sudent_id} - {self.ammount} - {'Paid' if self.is_paid else 'Unpaid'}"
     
 class Payment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, null=True, blank=True)
 
     stripe_payment_intent_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
-
+    stripe_session_id = models.CharField(
+        max_length=255,
+        unique=True,
+        null=True,
+        blank=True
+    )
     fines = models.ManyToManyField(Fine)
 
     status = models.CharField(
