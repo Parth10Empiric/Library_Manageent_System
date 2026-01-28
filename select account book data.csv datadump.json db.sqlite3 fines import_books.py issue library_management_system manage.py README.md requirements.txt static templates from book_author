@@ -1,0 +1,23 @@
+                  List of relations
+ Schema |            Name            | Type  | Owner 
+--------+----------------------------+-------+-------
+ public | account_student            | table | admin
+ public | auth_group                 | table | admin
+ public | auth_group_permissions     | table | admin
+ public | auth_permission            | table | admin
+ public | auth_user                  | table | admin
+ public | auth_user_groups           | table | admin
+ public | auth_user_user_permissions | table | admin
+ public | book_author                | table | admin
+ public | book_book                  | table | admin
+ public | book_category              | table | admin
+ public | django_admin_log           | table | admin
+ public | django_content_type        | table | admin
+ public | django_migrations          | table | admin
+ public | django_session             | table | admin
+ public | fines_fine                 | table | admin
+ public | fines_payment              | table | admin
+ public | fines_payment_fines        | table | admin
+ public | issue_issue                | table | admin
+(18 rows)
+

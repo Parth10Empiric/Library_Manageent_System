@@ -45,6 +45,10 @@ INSTALLED_APPS = [
     'book',
     'issue',
     'fines',
+
+    'api',
+    'rest_framework',
+
 ]
 
 MIDDLEWARE = [
