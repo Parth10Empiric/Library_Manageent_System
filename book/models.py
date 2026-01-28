@@ -15,7 +15,7 @@ class Category(models.Model):
 
 class Book(models.Model):
     title = models.CharField(max_length=500)
-    author = models.ForeignKey(Author,on_delete=models.CASCADE)
+    author = models.ForeignKey(Author,on_delete=models.CASCADE, related_name='book')
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     is_available = models.BooleanField(default=True)
     is_registered = models.BooleanField(default=False)

@@ -32,4 +32,6 @@ urlpatterns = [
     path('admindash/manage/', include("issue.urls")),
     path('logout/', views.logout_view, name="logout"),
     
+    path('api/', include("api.urls"))
+    
 ]
