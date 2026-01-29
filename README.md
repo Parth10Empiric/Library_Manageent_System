@@ -136,3 +136,48 @@ http://127.0.0.1:8000/
 * **Payments:** Replace the placeholder `STRIPE_SECRET_KEY` in your `settings.py` with your actual Stripe API credentials for live testing.
 
 ---
+
+## 📑 API Documentation
+
+This project provides a fully documented **RESTful API** for the **Library Management System**, covering authentication, book management, student workflows, issue handling, and fine payments.
+
+The complete API documentation is created and published using **Postman**, making it easy to explore endpoints, request/response formats, and authentication requirements.
+
+### 🔗 View API Documentation
+👉 **Postman Published Documentation:**  
+https://documenter.getpostman.com/view/51846050/2sBXVo87Qj 
+*(Replace this URL with your actual Postman documentation link)*
+
+---
+
+### 🔐 Authentication
+- JWT-based authentication (Access & Refresh Tokens)
+- Role-based authorization (Admin / Student)
+- Secure token verification and refresh support
+
+---
+
+### 📚 Available API Modules
+- **Authentication** – Login, token generation, verification
+- **Student APIs** – Book browsing, issue requests, dashboard, fines
+- **Book Management** – Add, update, delete, and view books
+- **Author Management** – Manage authors and relationships
+- **Student Management** – Admin control over student accounts
+- **Issue Management** – Book issue approval and return workflow
+- **Payment APIs** – Online fine payments (Stripe test mode) & cash handling
+
+---
+
+### 🧪 Testing & Validation
+- All APIs tested using **Postman**
+- Organized collections and folders for clarity
+- Clear request/response examples included
+- Proper HTTP status codes and error handling
+
+---
+
+### 🛡️ Security Notes
+- JWT tokens required for protected endpoints
+- CSRF protection enabled where applicable
+- Payment operations handled securely
+- Admin-only access for sensitive actions 
