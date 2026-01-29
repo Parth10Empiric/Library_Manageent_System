@@ -36,12 +36,12 @@ class LoginAPI(APIView):
             password=request.data.get('password')
         )
         if user:
-            token, _ = Token.objects.get_or_create(user=user)
+            # token, _ = Token.objects.get_or_create(user=user)
             
             login(request, user)   
             return Response({
                 "message": "Login successful",
-                "token": token.key,
+                # "token": token.key,
             }, status=status.HTTP_200_OK)
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -125,6 +125,15 @@ class StudentViewSet(ModelViewSet):
         'department': ['exact'],
     }
     
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        student_id = instance.sudent_id 
+        self.perform_destroy(instance)
+        
+        return Response({
+            "message": f"Student with ID {student_id} deleted successfully"
+        }, status=status.HTTP_200_OK)
+        
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
@@ -153,10 +162,18 @@ class AuthorViewSet(ModelViewSet):
     serializer_class = AuthorSerializer
     permission_classes = [IsAdmin]
     
+    filterset_fields = {
+        'name': ['icontains'],
+    }
+    
 class UserViewSet(ListModelMixin, UpdateModelMixin, GenericViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAdmin]
+    
+    filterset_fields = {
+        'username': ['exact'],
+    }
     
     @action(detail=True, methods=['post'])
     def set_password(self, request, pk=None):

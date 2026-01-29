@@ -1,4 +1,5 @@
 from rest_framework.serializers import Serializer, ModelSerializer, ValidationError, BooleanField, SerializerMethodField, CharField
+from rest_framework.validators import UniqueTogetherValidator, UniqueValidator
 
 from account.models import Student, User
 from book.models import Author, Book, Category
@@ -35,7 +36,18 @@ class BookSerializer(ModelSerializer):
         fields = ['id', 'title', 'author', 'category', 'is_available', 'is_registered']
         read_only_fields = ['is_Available', 'is_registered']
         
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Book.objects.all(),
+                fields=['title', 'author'],
+                message="A book with this title by this author already exists."
+            )
+        ]
+        
 class AuthorSerializer(ModelSerializer):
+    name = CharField(
+        validators=[UniqueValidator(queryset=Author.objects.all(), message="An author with this name already exists.")]
+    )
     books = BookSerializer(read_only=True, many=True)
     class Meta:
         model = Author
