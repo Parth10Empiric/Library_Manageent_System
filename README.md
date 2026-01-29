@@ -146,7 +146,6 @@ The complete API documentation is created and published using **Postman**, makin
 ### 🔗 View API Documentation
 👉 **Postman Published Documentation:**  
 https://documenter.getpostman.com/view/51846050/2sBXVo87Qj 
-*(Replace this URL with your actual Postman documentation link)*
 
 ---
 
